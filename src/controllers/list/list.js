@@ -1123,6 +1123,7 @@ export const getListsForCustomer = async (req, res) => {
               select: {
                 id: true,
                 name: true,
+                slug : true,
                 address: true,
                 images: { select: { image: true } },
                 review: { select: { rating: true } },
