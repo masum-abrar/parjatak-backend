@@ -20,6 +20,7 @@ import {
   deletePostLike,
   getNewPostsFromFriends,
   getNewPostsFromUsers,
+  getPlacesForCustomer,
   //   getFeaturedProductsForCustomer,
   getPost,
   getPostComments,
@@ -105,5 +106,6 @@ router.get("/v1/customer/new-posts-from-friends", getNewPostsFromFriends);
 router.get("/v1/customer/new-posts-from-users", getNewPostsFromUsers);
 // router.get("/v1/customer/trending-products", getTrendingProductsForCustomer);
 // router.get("/v1/customer/featured-products", getFeaturedProductsForCustomer);
+router.get("/v1/customer/category-places", getPlacesForCustomer);
 
 export default router;

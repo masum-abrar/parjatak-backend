@@ -980,12 +980,12 @@ export const getPostsForCustomer = async (req, res) => {
               mode: "insensitive",
             },
           },
-          {
-            placeId: {
-              contains: req.query.placeId,
-              mode: "insensitive",
-            },
-          },
+          // {
+          //   placeId: {
+          //     contains: req.query.placeId,
+          //     mode: "insensitive",
+          //   },
+          // },
         ],
       },
       include: {
@@ -1296,7 +1296,7 @@ export const getPostForCustomerByPostId = async (req, res) => {
         subdistrict: true,
         images: { select: { image: true } },
         user: {
-          select: { name: true, image: true, address: true, city: true },
+          select: { id:true, name: true, image: true, address: true, city: true },
         },
         like: {
           select: {
@@ -1306,8 +1306,54 @@ export const getPostForCustomerByPostId = async (req, res) => {
         },
         comment: {
           select: {
+            id: true,
             comment: true,
-            user: { select: { id: true, name: true, image: true } },
+            user: {
+              select: { name: true, id: true, fullname: true, image: true },
+            },
+            parentUser: {
+              select: { name: true, id: true, fullname: true, image: true },
+            },
+            like: {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    id: true,
+                    fullname: true,
+                    image: true,
+                  },
+                },
+                parentUser: {
+                  select: {
+                    name: true,
+                    id: true,
+                    fullname: true,
+                    image: true,
+                  },
+                },
+              },
+            },
+            reply: {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    id: true,
+                    fullname: true,
+                    image: true,
+                  },
+                },
+                parentUser: {
+                  select: {
+                    name: true,
+                    id: true,
+                    fullname: true,
+                    image: true,
+                  },
+                },
+              },
+            },
           },
         },
         postCommentLike: {
@@ -2384,5 +2430,45 @@ export const getNewPostsFromUsers = async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json(jsonResponse(false, error, null));
+  }
+};
+
+
+export const getPlacesForCustomer = async (req, res) => {
+  try {
+    const { divisionId, districtId, limit, page } = req.query;
+
+    const places = await prisma.place.findMany({
+      where: {
+        isActive: true,
+        divisionId: divisionId || undefined,
+        districtId: districtId || undefined,
+      },
+      include: {
+        images: true, // ইমেজ রিলেশন আনবে
+        district: true, // জেলা নামের জন্য
+        user: true,     // পোস্ট করা ইউজারের ডাটা
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip:
+        limit && page
+          ? parseInt(limit) * (parseInt(page) - 1)
+          : defaultLimit() * (defaultPage() - 1),
+      take: limit ? parseInt(limit) : defaultLimit(),
+    });
+
+    if (places.length === 0) {
+      return res.status(200).json(jsonResponse(true, "No place found", []));
+    }
+
+    return res
+      .status(200)
+      .json(jsonResponse(true, `${places.length} places found`, places));
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(jsonResponse(false, error.message, null));
   }
 };

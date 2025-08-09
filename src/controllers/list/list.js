@@ -1092,57 +1092,58 @@ export const deleteList = async (req, res) => {
 //get all products
 export const getListsForCustomer = async (req, res) => {
   try {
-    const products = await prisma.list.findMany({
-      where: {
-        isActive: true,
-        AND: [
-          {
-            title: {
-              contains: req.query.title,
-              mode: "insensitive",
-            },
-          },
-        ],
-      },
-      include: {
-        // place: true,
-        user: true,
-        images: true,
-        like: true,
-        review: {
-          select: {
-            id: true,
-            comment: true,
-            user: { select: { name: true, fullname: true } },
-          },
+   const products = await prisma.list.findMany({
+  where: {
+    isActive: true,
+    AND: [
+      {
+        title: {
+          contains: req.query.title,
+          mode: "insensitive",
         },
-        listPlace: {
+      },
+    ],
+  },
+  include: {
+    user: true,
+    images: true,
+    like: true,
+    review: {
+      where: { userId: { not: null } }, // ✅ only reviews with a user
+      select: {
+        id: true,
+        comment: true,
+        user: { select: { id:true , name: true, fullname: true , image : true} },
+      },
+    },
+    listPlace: {
+      select: {
+        id: true,
+        place: {
           select: {
             id: true,
-            place: {
-              select: {
-                id: true,
-                name: true,
-                slug : true,
-                address: true,
-                images: { select: { image: true } },
-                review: { select: { rating: true } },
-              },
-            },
+            name: true,
+            slug: true,
+            address: true,
+            images: { select: { image: true } },
+            review: { select: { rating: true } },
           },
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
-      skip:
-        req.query.limit && req.query.page
-          ? parseInt(req.query.limit * (req.query.page - 1))
-          : parseInt(defaultLimit() * (defaultPage() - 1)),
-      take: req.query.limit
-        ? parseInt(req.query.limit)
-        : parseInt(defaultLimit()),
-    });
+    },
+  },
+  orderBy: {
+    createdAt: "desc",
+  },
+  skip:
+    req.query.limit && req.query.page
+      ? parseInt(req.query.limit * (req.query.page - 1))
+      : parseInt(defaultLimit() * (defaultPage() - 1)),
+  take: req.query.limit
+    ? parseInt(req.query.limit)
+    : parseInt(defaultLimit()),
+});
+
 
     if (products.length === 0)
       return res
